@@ -1,5 +1,10 @@
 # Jackielii Tap
 
+My personal homebrew taps, mainly for Linux
+
+- [x] rofi
+- [ ] dunst
+
 ## How do I install these formulae?
 
 `brew install jackielii/tap/<formula>`
