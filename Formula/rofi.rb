@@ -12,15 +12,15 @@ class Rofi < Formula
   depends_on "ninja" => :build
   depends_on "flex"
   depends_on "cairo"
+  depends_on "gdk-pixbuf"
   depends_on "pango"
   depends_on "glib"
-  depends_on "gdk-pixbuf"
-  depends_on "startup-notification"
   depends_on "libxkbcommon"
   depends_on "libxcb"
+  depends_on "startup-notification"
   depends_on "xcb-util"
-  depends_on "xcb-util-wm"
   depends_on "xcb-util-cursor"
+  depends_on "xcb-util-wm"
 
   def install
     system "meson", "setup", "build", "--prefix=#{prefix}"
