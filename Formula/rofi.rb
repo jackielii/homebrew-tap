@@ -6,6 +6,11 @@ class Rofi < Formula
   license "MIT"
   head "https://github.com/davatorium/rofi.git", branch: "next"
 
+  bottle do
+    root_url "https://github.com/jackielii/homebrew-tap/releases/download/rofi-1.7.3"
+    sha256 x86_64_linux: "033c1525a65d3fced3a7ba396417650fe337a1b771d37c372e89db3906502539"
+  end
+
   depends_on "bison" => :build
   depends_on "cmake" => :build
   depends_on "meson" => :build
