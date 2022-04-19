@@ -1,6 +1,3 @@
-# Documentation: https://docs.brew.sh/Formula-Cookbook
-#                https://rubydoc.brew.sh/Formula
-# PLEASE REMOVE ALL GENERATED COMMENTS BEFORE SUBMITTING YOUR PULL REQUEST!
 class Rofi < Formula
   desc "Rofi: A window switcher, application launcher and dmenu replacement"
   homepage "https://github.com/davatorium/rofi"
@@ -46,6 +43,6 @@ class Rofi < Formula
     #
     # The installed folder is not in the path, so use the entire path to any
     # executables being tested: `system "#{bin}/program", "do", "something"`.
-    system "rofi", "-version"
+    system "#{bin}/rofi", "-version"
   end
 end
