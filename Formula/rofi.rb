@@ -1,5 +1,5 @@
 class Rofi < Formula
-  desc "Rofi: A window switcher, application launcher and dmenu replacement"
+  desc "A window switcher, application launcher and dmenu replacement"
   homepage "https://github.com/davatorium/rofi"
   url "https://github.com/davatorium/rofi/releases/download/1.7.3/rofi-1.7.3.tar.gz"
   sha256 "608458775d0a8699dc31027e786aa9f3a63658ebfb98c5c807620a5889687ecc"
@@ -7,21 +7,16 @@ class Rofi < Formula
   head "https://github.com/davatorium/rofi.git", branch: "next"
 
   depends_on "cmake" => :build
+  depends_on "bison" => :build
   depends_on "meson" => :build
   depends_on "ninja" => :build
-  depends_on "bison" => :build
   depends_on "flex"
-  depends_on "pango"
-  # depends_on "libpangocairo" => :build
   depends_on "cairo"
-  # depends_on "libcairo-xcb" => :build
+  depends_on "pango"
   depends_on "glib"
-  # depends_on "gmodule-2.0" => :build
-  # depends_on "gio-unix-2.0" => :build
   depends_on "gdk-pixbuf"
   depends_on "startup-notification"
   depends_on "libxkbcommon"
-  # depends_on "libxkbcommon-x11" => :build
   depends_on "libxcb"
   depends_on "xcb-util"
   depends_on "xcb-util-wm"
