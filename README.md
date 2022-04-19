@@ -2,7 +2,7 @@
 
 My personal homebrew taps, mainly for Linux
 
-- [ ] rofi
+- [x] rofi
 - [ ] dunst
 
 ## How do I install these formulae?
