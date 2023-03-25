@@ -4,6 +4,7 @@ My personal homebrew taps, mainly for Linux
 
 - [x] rofi
 - [ ] dunst
+- [x] skhd (macos koekeishiya/skhd fork)
 
 ## How do I install these formulae?
 
