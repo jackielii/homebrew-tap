@@ -2,7 +2,7 @@ class Skhd < Formula
   desc "Simple hotkey-daemon for macOS."
   homepage "https://github.com/jackielii/skhd"
   url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.6.zip"
-  sha256 "95a56105bff04c8e5aa3f4ab7e0dde159c89921940aee4b1a165b360cdb7f2b8"
+  sha256 "04872a4ab021fae81524ea21371f59eb58e3eee715cb356f8e8f88b0caf4b389"
   head "https://github.com/jackielii/skhd.git"
 
   option "with-logging", "Redirect stdout and stderr to log files"
