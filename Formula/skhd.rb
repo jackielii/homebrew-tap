@@ -3,7 +3,7 @@ class Skhd < Formula
   homepage "https://github.com/jackielii/skhd"
   url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9.zip"
   sha256 "d31395c87b26c33a8eb9f086846b5c7d145ab01a2351ee3f752a1bae30759263"
-  head "https://github.com/jackielii/skhd.git"
+  head "https://github.com/jackielii/skhd.git", branch: "main"
 
   def install
     ENV.deparallelize
