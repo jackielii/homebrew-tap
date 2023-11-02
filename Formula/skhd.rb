@@ -1,5 +1,5 @@
 class Skhd < Formula
-  desc "Simple hotkey-daemon for macOS."
+  desc "Simple hotkey-daemon for macOS"
   homepage "https://github.com/jackielii/skhd"
   url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9a.zip"
   sha256 "7890a2e30ae37bd8575a9c360f9ea150dca4e5dd842dd833866464dc12246998"
