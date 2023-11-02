@@ -1,8 +1,8 @@
 class Skhd < Formula
-  desc "Simple hotkey-daemon for macOS."
+  desc "Simple hotkey-daemon for macOS"
   homepage "https://github.com/jackielii/skhd"
-  url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9a.zip"
-  sha256 "7890a2e30ae37bd8575a9c360f9ea150dca4e5dd842dd833866464dc12246998"
+  url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9a.tar.gz"
+  sha256 "884c1b0774db85478cae2f4757c76623fde05a6514f4b54505d76aff181f1015"
   head "https://github.com/jackielii/skhd.git"
 
   def install
@@ -12,15 +12,16 @@ class Skhd < Formula
     (pkgshare/"examples").install "#{buildpath}/examples/skhdrc"
   end
 
-  def caveats; <<~EOS
-    Copy the example configuration into your home directory:
-      cp #{opt_pkgshare}/examples/skhdrc ~/.skhdrc
+  def caveats
+    <<~EOS
+      Copy the example configuration into your home directory:
+        cp #{opt_pkgshare}/examples/skhdrc ~/.skhdrc
 
-    If you want skhd to be managed by launchd (start automatically upon login):
-      skhd --start-service
+      If you want skhd to be managed by launchd (start automatically upon login):
+        skhd --start-service
 
-    When running as a launchd service logs will be found in:
-      /tmp/skhd_<user>.[out|err].log
+      When running as a launchd service logs will be found in:
+        /tmp/skhd_<user>.[out|err].log
     EOS
   end
 
