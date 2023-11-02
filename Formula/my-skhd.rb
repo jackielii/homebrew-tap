@@ -1,4 +1,4 @@
-class Skhd < Formula
+class MySkhd < Formula
   desc "Simple hotkey-daemon for macOS"
   homepage "https://github.com/jackielii/skhd"
   url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9a.tar.gz"
@@ -15,7 +15,7 @@ class Skhd < Formula
   def caveats
     <<~EOS
       Copy the example configuration into your home directory:
-        cp #{opt_pkgshare}/examples/skhdrc ~/.skhdrc
+        cp #{pkgshare}/examples/skhdrc ~/.skhdrc
 
       If you want skhd to be managed by launchd (start automatically upon login):
         skhd --start-service
