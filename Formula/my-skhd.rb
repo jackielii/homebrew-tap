@@ -1,8 +1,8 @@
 class MySkhd < Formula
   desc "Simple hotkey-daemon for macOS"
   homepage "https://github.com/jackielii/skhd"
-  url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9a.tar.gz"
-  sha256 "884c1b0774db85478cae2f4757c76623fde05a6514f4b54505d76aff181f1015"
+  url "https://github.com/jackielii/skhd/archive/refs/tags/v0.3.9b.tar.gz"
+  sha256 "9469267811fd87dec2b714c69463fc0e8125ea379da9cdd20f44d7ecca286988"
   head "https://github.com/jackielii/skhd.git"
 
   def install
