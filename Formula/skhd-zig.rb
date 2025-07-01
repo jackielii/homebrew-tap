@@ -33,7 +33,9 @@ class SkhdZig < Formula
   def caveats
     <<~EOS
       Create a configuration file in your home directory:
-        touch ~/.skhdrc
+        touch ~/.config/skhd/skhdrc
+      
+      Check https://github.com/jackielii/skhd.zig/blob/main/SYNTAX.md
 
       If you want skhd to be managed by launchd (start automatically upon login):
         skhd --start-service
