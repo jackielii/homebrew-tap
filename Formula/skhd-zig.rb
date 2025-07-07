@@ -1,14 +1,14 @@
 class SkhdZig < Formula
   desc "Simple hotkey daemon for macOS, written in Zig"
   homepage "https://github.com/jackielii/skhd.zig"
-  version "0.0.8"
+  version "0.0.9"
   
   if Hardware::CPU.intel?
-    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.8/skhd-x86_64-macos.tar.gz"
-    sha256 "c973f748354b6345fb83ee039a3ecbe1e3e28b43699e888be5693b36cef74f9b"
+    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.9/skhd-x86_64-macos.tar.gz"
+    sha256 "c3efd5d2888001be466fcabbd5c9adbd9cb1372a845ce50aea7f1077f2139b9b"
   elsif Hardware::CPU.arm?
-    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.8/skhd-arm64-macos.tar.gz"
-    sha256 "f8e2a5b4145b60003884719a320bd051aa2ccd240f71ffbc5df91c26474678c3"
+    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.9/skhd-arm64-macos.tar.gz"
+    sha256 "06ad57391b4fbcd6337a701177a04f05d10df807c3afb1428b79acf19cb41903"
   end
 
   head "https://github.com/jackielii/skhd.zig.git", branch: "main"
