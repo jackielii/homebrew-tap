@@ -4,10 +4,10 @@ class SkhdZig < Formula
   version "0.0.15"
   
   if Hardware::CPU.intel?
-    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.15-preview/skhd-x86_64-macos.tar.gz"
+    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.15/skhd-x86_64-macos.tar.gz"
     sha256 "bc2372093bed2aa295a28b640e195c7e1501e0f78ba77355d97840992645f352"
   elsif Hardware::CPU.arm?
-    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.15-preview/skhd-arm64-macos.tar.gz"
+    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.15/skhd-arm64-macos.tar.gz"
     sha256 "3bd1a35a257248db2f2fe37ed22e4c1affd2236156ef06c2dbe630e16c588b47"
   end
 
