@@ -29,9 +29,17 @@ class SkhdZig < Formula
   # supports `brew install --HEAD` which gives us a source checkout.
   def install
     if File.directory?("skhd.app")
-      # 0.0.18+ release tarball: pre-built .app bundle
+      # Pre-built .app bundle, top-level directory preserved
       prefix.install "skhd.app"
       bin.install_symlink prefix/"skhd.app/Contents/MacOS/skhd"
+    elsif File.exist?("Contents/MacOS/skhd") && File.exist?("Contents/Info.plist")
+      # Brew's unpacker auto-strips a single top-level directory — for our
+      # 0.0.18+ tarballs that means it stripped `skhd.app/` and we're already
+      # inside the bundle. Reconstruct skhd.app at the install prefix.
+      app_dir = prefix/"skhd.app"
+      app_dir.mkpath
+      cp_r "Contents", app_dir
+      bin.install_symlink app_dir/"Contents/MacOS/skhd"
     elsif File.exist?("skhd-x86_64-macos")
       bin.install "skhd-x86_64-macos" => "skhd"
     elsif File.exist?("skhd-arm64-macos")
@@ -43,7 +51,7 @@ class SkhdZig < Formula
       prefix.install "zig-out/skhd.app"
       bin.install_symlink prefix/"skhd.app/Contents/MacOS/skhd"
     else
-      odie "skhd-zig payload did not contain skhd.app, a recognised binary, or build.zig"
+      odie "skhd-zig payload did not contain a recognised layout"
     end
   end
 
