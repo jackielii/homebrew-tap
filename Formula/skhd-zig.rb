@@ -2,17 +2,24 @@ class SkhdZig < Formula
   desc "Simple hotkey daemon for macOS, written in Zig"
   homepage "https://github.com/jackielii/skhd.zig"
 
-  if Hardware::CPU.intel?
-    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.17/skhd-x86_64-macos.tar.gz"
-    sha256 "4d405ad06532d4e6c9fb215c4b84d3fb2d1c3d861d09dc5d058be3ed1daaecfc"
-  elsif Hardware::CPU.arm?
-    url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.17/skhd-arm64-macos.tar.gz"
-    sha256 "d65bef42850e0b1a6eb34ecbe4ab06d65df4188f8b3fe2a4bcb190375d8a161b"
-  end
+  # Apple Silicon only as of v0.0.18 (Intel builds paused — no demand,
+  # macos-13 runners spend most of their time queued). To re-enable Intel:
+  #   1. Wrap the url/sha pair below in `if Hardware::CPU.arm?`
+  #   2. Uncomment the `Hardware::CPU.intel?` branch underneath
+  #   3. Drop the `depends_on arch: :arm64` line
+  #   4. Re-enable the matching matrix entry + auto-bump SHA in
+  #      skhd.zig's release.yml (build-release matrix, update-homebrew job)
+  url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.17/skhd-arm64-macos.tar.gz"
+  sha256 "d65bef42850e0b1a6eb34ecbe4ab06d65df4188f8b3fe2a4bcb190375d8a161b"
+  # if Hardware::CPU.intel?
+  #   url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.17/skhd-x86_64-macos.tar.gz"
+  #   sha256 "4d405ad06532d4e6c9fb215c4b84d3fb2d1c3d861d09dc5d058be3ed1daaecfc"
+  # end
 
   head "https://github.com/jackielii/skhd.zig.git", branch: "main"
 
   depends_on "zig" => :build
+  depends_on arch: :arm64
   depends_on :macos
 
   # Starting in 0.0.18 the release tarball contains skhd.app rather than a bare
@@ -40,13 +47,11 @@ class SkhdZig < Formula
     end
   end
 
-  service do
-    run [opt_bin/"skhd"]
-    keep_alive true
-    log_path "#{Dir.home}/Library/Logs/skhd.log"
-    error_log_path "#{Dir.home}/Library/Logs/skhd.log"
-    environment_variables PATH: std_service_path_env
-  end
+  # `brew services` integration removed in 0.0.18. skhd's own `--install-service`
+  # produces a launchd plist that's tuned for macOS Tahoe (retry loop, log path,
+  # bootstrap/bootout, ThrottleInterval=10, bundle-aware ProgramArguments) — the
+  # brew-services-generated plist is a strict subset and the two would race for
+  # the event tap if both were enabled. Caveats below cover the migration.
 
   def caveats
     base = <<~EOS
@@ -65,26 +70,34 @@ class SkhdZig < Formula
         ~/Library/Logs/skhd.log
     EOS
 
+    bundle_caveats = <<~EOS
+
+      Accessibility permission (.app bundle install):
+        1. Symlink the bundle into /Applications so System Settings can find it:
+             ln -sfn #{opt_prefix}/skhd.app /Applications/skhd.app
+        2. Open System Settings → Privacy & Security → Accessibility
+        3. Click '+', add /Applications/skhd.app, toggle on
+        4. Run: skhd --restart-service
+
+      Upgrading from 0.0.17 or earlier? See:
+        https://github.com/jackielii/skhd.zig/blob/main/docs/UPGRADING.md
+
+      Migrating from `brew services start skhd-zig`? The brew-services
+      integration was removed in 0.0.18. Run:
+        brew services stop skhd-zig 2>/dev/null
+        skhd --install-service
+        skhd --start-service
+    EOS
+
+    legacy_caveats = <<~EOS
+
+      Note: skhd requires accessibility permissions.
+      You'll be prompted to grant these permissions on first run.
+    EOS
+
     if (opt_prefix/"skhd.app").exist?
-      bundle_caveats = <<~EOS
-
-        Accessibility permission (.app bundle install):
-          1. Symlink the bundle into /Applications so System Settings can find it:
-               ln -sfn #{opt_prefix}/skhd.app /Applications/skhd.app
-          2. Open System Settings → Privacy & Security → Accessibility
-          3. Click '+', add /Applications/skhd.app, toggle on
-          4. Run: skhd --restart-service
-
-        Upgrading from 0.0.17 or earlier? See:
-          https://github.com/jackielii/skhd.zig/blob/main/docs/UPGRADING.md
-      EOS
       base + bundle_caveats
     else
-      legacy_caveats = <<~EOS
-
-        Note: skhd requires accessibility permissions.
-        You'll be prompted to grant these permissions on first run.
-      EOS
       base + legacy_caveats
     end
   end
