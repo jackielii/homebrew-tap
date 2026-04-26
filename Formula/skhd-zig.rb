@@ -9,8 +9,8 @@ class SkhdZig < Formula
   #   3. Drop the `depends_on arch: :arm64` line
   #   4. Re-enable the matching matrix entry + auto-bump SHA in
   #      skhd.zig's release.yml (build-release matrix, update-homebrew job)
-  url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.17/skhd-arm64-macos.tar.gz"
-  sha256 "d65bef42850e0b1a6eb34ecbe4ab06d65df4188f8b3fe2a4bcb190375d8a161b"
+  url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.18/skhd-arm64-macos.tar.gz"
+  sha256 "0ba6911832e544eec810e92a2ed3fc48f8c57c80f6725210275e7809c1c759e0"
   # if Hardware::CPU.intel?
   #   url "https://github.com/jackielii/skhd.zig/releases/download/v0.0.17/skhd-x86_64-macos.tar.gz"
   #   sha256 "4d405ad06532d4e6c9fb215c4b84d3fb2d1c3d861d09dc5d058be3ed1daaecfc"
