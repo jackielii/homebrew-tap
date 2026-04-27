@@ -19,7 +19,6 @@ class SkhdZig < Formula
   head "https://github.com/jackielii/skhd.zig.git", branch: "main"
 
   depends_on "zig" => :build
-  depends_on arch: :arm64
   depends_on :macos
 
   # Starting in 0.0.18 the release tarball contains skhd.app rather than a bare
