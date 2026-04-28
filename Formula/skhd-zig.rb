@@ -54,41 +54,14 @@ class SkhdZig < Formula
     end
   end
 
-  def post_install
-    # Symlink the bundle into /Applications so SMAppService, TCC entries,
-    # and `zig build install-local` all resolve `/Applications/skhd.app`
-    # consistently. Without this, the bundle lives at
-    # /opt/homebrew/Cellar/skhd-zig/<ver>/skhd.app and Privacy & Security
-    # surfaces it under a non-obvious path while install-local writes to
-    # a different prefix — same bytes, different path-keyed grants.
-    target = prefix/"skhd.app"
-    link = Pathname.new("/Applications/skhd.app")
-    if link.exist? && !link.symlink?
-      opoo "/Applications/skhd.app exists and is not a symlink — leaving alone"
-    elsif link.symlink? && link.realpath != target.realpath
-      ohai "Updating /Applications/skhd.app symlink → #{target}"
-      link.unlink
-      ln_s target, link
-    elsif !link.exist?
-      ohai "Linking #{target} into /Applications"
-      ln_s target, link
-    end
-  rescue => e
-    opoo "Could not symlink to /Applications: #{e.message}"
-  end
-
-  def post_uninstall
-    # Remove the symlink we created in post_install. Only act if it points
-    # at our keg — never delete a non-symlink or a link the user repointed.
-    link = Pathname.new("/Applications/skhd.app")
-    return unless link.symlink?
-    target = link.readlink.to_s
-    if target.include?("/Cellar/skhd-zig/") || target == (prefix/"skhd.app").to_s
-      link.unlink
-    end
-  rescue
-    # Best-effort; uninstall shouldn't fail because of a stale symlink.
-  end
+  # We don't auto-symlink the bundle into /Applications: brew sandboxes
+  # post_install and denies writes to /Applications (it's cask territory,
+  # not formula territory). The bundle works fine from
+  # /opt/homebrew/opt/skhd-zig/skhd.app — TCC bundle-keys grants by
+  # CFBundleIdentifier, not by path, so Accessibility / Input Monitoring
+  # apply regardless of where the bundle lives on disk. The caveats
+  # below document the optional `ln -sfn` command for users who want
+  # the bundle to appear under /Applications.
 
   # `brew services` integration removed in 0.0.18. skhd's own `--install-service`
   # produces a launchd plist that's tuned for macOS Tahoe (retry loop, log path,
@@ -108,9 +81,13 @@ class SkhdZig < Formula
     bundle_caveats = <<~EOS
 
       App bundle:
-        /Applications/skhd.app → #{opt_prefix}/skhd.app
-        (symlink auto-created by this formula's post_install; survives
-        brew upgrade so TCC entries keyed on this path stay valid).
+        #{opt_prefix}/skhd.app
+        (TCC bundle-keys grants by CFBundleIdentifier, not by path, so
+        Accessibility / Input Monitoring apply wherever the bundle lives.)
+
+      Optional — surface the bundle under /Applications (cosmetic; some
+      System Settings panes show the path):
+        ln -sfn #{opt_prefix}/skhd.app /Applications/skhd.app
 
       First-run setup:
         skhd --install-service
