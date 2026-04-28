@@ -16,16 +16,21 @@ class SkhdZig < Formula
   #   sha256 "cedab4892b025626ca68bd053067024787c08780eea301b2e32b36acbf504fa7"
   # end
 
-  head "https://github.com/jackielii/skhd.zig.git", branch: "main"
-
-  depends_on "zig" => :build
   depends_on :macos
+
+  # No `--HEAD` install: brew's `zig` formula tracks the latest stable
+  # (currently 0.16), our build.zig is on 0.14, and brew core has no
+  # `zig@0.14`. Even if pinned, the build sandbox blocks the codesigning
+  # step (skhd.app needs a self-signed cert in the user's login keychain
+  # to keep TCC grants stable across rebuilds), so a HEAD install would
+  # leave the bundle unsigned and silently broken under TCC. Users who
+  # want bleeding-edge can `gh release download v<X>.<Y>.<Z>-alpha` from
+  # the GitHub releases page instead.
 
   # Starting in 0.0.18 the release tarball contains skhd.app rather than a bare
   # `skhd` binary. The 0.0.17 tarball still ships a bare binary; install layout
   # branches on what's actually in the payload so this formula keeps working
-  # for users still on the old release until the auto-bump runs, and also
-  # supports `brew install --HEAD` which gives us a source checkout.
+  # for users still on the old release until the auto-bump runs.
   def install
     if File.directory?("skhd.app")
       # Pre-built .app bundle, top-level directory preserved
@@ -43,12 +48,6 @@ class SkhdZig < Formula
       bin.install "skhd-x86_64-macos" => "skhd"
     elsif File.exist?("skhd-arm64-macos")
       bin.install "skhd-arm64-macos" => "skhd"
-    elsif File.exist?("build.zig")
-      # --HEAD install: build the bundle from source. Code signing uses the
-      # user's login keychain so it has to happen post-install, not here.
-      system "zig", "build", "app", "-Doptimize=ReleaseFast"
-      prefix.install "zig-out/skhd.app"
-      bin.install_symlink prefix/"skhd.app/Contents/MacOS/skhd"
     else
       odie "skhd-zig payload did not contain a recognised layout"
     end
