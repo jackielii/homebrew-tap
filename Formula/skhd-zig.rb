@@ -54,6 +54,42 @@ class SkhdZig < Formula
     end
   end
 
+  def post_install
+    # Symlink the bundle into /Applications so SMAppService, TCC entries,
+    # and `zig build install-local` all resolve `/Applications/skhd.app`
+    # consistently. Without this, the bundle lives at
+    # /opt/homebrew/Cellar/skhd-zig/<ver>/skhd.app and Privacy & Security
+    # surfaces it under a non-obvious path while install-local writes to
+    # a different prefix — same bytes, different path-keyed grants.
+    target = prefix/"skhd.app"
+    link = Pathname.new("/Applications/skhd.app")
+    if link.exist? && !link.symlink?
+      opoo "/Applications/skhd.app exists and is not a symlink — leaving alone"
+    elsif link.symlink? && link.realpath != target.realpath
+      ohai "Updating /Applications/skhd.app symlink → #{target}"
+      link.unlink
+      ln_s target, link
+    elsif !link.exist?
+      ohai "Linking #{target} into /Applications"
+      ln_s target, link
+    end
+  rescue => e
+    opoo "Could not symlink to /Applications: #{e.message}"
+  end
+
+  def post_uninstall
+    # Remove the symlink we created in post_install. Only act if it points
+    # at our keg — never delete a non-symlink or a link the user repointed.
+    link = Pathname.new("/Applications/skhd.app")
+    return unless link.symlink?
+    target = link.readlink.to_s
+    if target.include?("/Cellar/skhd-zig/") || target == (prefix/"skhd.app").to_s
+      link.unlink
+    end
+  rescue
+    # Best-effort; uninstall shouldn't fail because of a stale symlink.
+  end
+
   # `brew services` integration removed in 0.0.18. skhd's own `--install-service`
   # produces a launchd plist that's tuned for macOS Tahoe (retry loop, log path,
   # bootstrap/bootout, ThrottleInterval=10, bundle-aware ProgramArguments) — the
@@ -67,24 +103,49 @@ class SkhdZig < Formula
 
       Syntax reference:
         https://github.com/jackielii/skhd.zig/blob/main/SYNTAX.md
-
-      Run skhd as a launchd service:
-        skhd --install-service
-        skhd --start-service
-        skhd --status
-
-      Logs (when running as a service):
-        ~/Library/Logs/skhd.log
     EOS
 
     bundle_caveats = <<~EOS
 
-      Accessibility permission (.app bundle install):
-        1. Symlink the bundle into /Applications so System Settings can find it:
-             ln -sfn #{opt_prefix}/skhd.app /Applications/skhd.app
-        2. Open System Settings → Privacy & Security → Accessibility
-        3. Click '+', add /Applications/skhd.app, toggle on
-        4. Run: skhd --restart-service
+      App bundle:
+        /Applications/skhd.app → #{opt_prefix}/skhd.app
+        (symlink auto-created by this formula's post_install; survives
+        brew upgrade so TCC entries keyed on this path stay valid).
+
+      First-run setup:
+        skhd --install-service
+        # macOS will pop up two consent dialogs the first time:
+        #   - Accessibility (always required)
+        #   - Input Monitoring (only if your config has .remap / .taphold rules)
+        # Both apply to skhd.app's bundle ID — one click per dialog, no
+        # need to navigate Privacy & Security manually.
+        skhd --status   # verify
+
+      Tap-hold / remap rules (.remap, .taphold, fn_layer):
+        --install-service prompts (Y/n) to install skhd-grabber as a system
+        LaunchDaemon (asks for sudo password). The grabber runs from inside
+        skhd.app — same bundle ID — so Input Monitoring granted to the
+        agent covers the grabber too via bundle-shared TCC.
+
+        On a machine without Karabiner-Elements, --install-grabber also
+        installs the Karabiner-DriverKit-VirtualHIDDevice .pkg (one-time
+        ~3MB download) and writes a LaunchDaemon plist for its userland
+        daemon. If Karabiner-Elements is already installed, we detect that
+        and skip — they share the same daemon label and KE manages it via
+        SMAppService.
+
+      Logs:
+        ~/Library/Logs/skhd.log    (agent)
+        /var/log/skhd-grabber.log  (grabber daemon, .remap users only)
+
+      Uninstall (full cleanup):
+        skhd --uninstall-service           # remove LaunchAgent
+        sudo skhd --uninstall-grabber      # remove grabber + VHIDD daemon
+                                           # (Karabiner DriverKit pkg + the
+                                           # kernel dext are pqrs's domain;
+                                           # --uninstall-service prints
+                                           # the exact follow-up commands)
+        brew uninstall skhd-zig            # cleans /Applications symlink
 
       Upgrading from 0.0.17 or earlier? See:
         https://github.com/jackielii/skhd.zig/blob/main/docs/UPGRADING.md
@@ -93,7 +154,6 @@ class SkhdZig < Formula
       integration was removed in 0.0.18. Run:
         brew services stop skhd-zig 2>/dev/null
         skhd --install-service
-        skhd --start-service
     EOS
 
     legacy_caveats = <<~EOS
