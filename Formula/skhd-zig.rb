@@ -18,14 +18,6 @@ class SkhdZig < Formula
 
   depends_on :macos
 
-  # No `--HEAD` install. build.zig is pinned at Zig 0.14; brew core's
-  # `zig` formula tracks the latest stable (currently 0.16), and there's
-  # no `zig@0.14` we could `depends_on`. The 0.14 → 0.16+ API churn (e.g.
-  # `Build.ExecutableOptions.root_source_file`) makes a `zig build app`
-  # under brew's pinned zig fail on the first call. Migrating build.zig
-  # is a separate bigger change. Users who want pre-release bits should
-  # download the latest tarball from the GitHub releases page.
-
   # Starting in 0.0.18 the release tarball contains skhd.app rather than a bare
   # `skhd` binary. The 0.0.17 tarball still ships a bare binary; install layout
   # branches on what's actually in the payload so this formula keeps working
