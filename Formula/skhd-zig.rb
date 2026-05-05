@@ -44,96 +44,43 @@ class SkhdZig < Formula
     end
   end
 
-  # We don't auto-symlink the bundle into /Applications: brew sandboxes
-  # post_install and denies writes to /Applications (it's cask territory,
-  # not formula territory). The bundle works fine from
-  # /opt/homebrew/opt/skhd-zig/skhd.app — TCC bundle-keys grants by
-  # CFBundleIdentifier, not by path, so Accessibility / Input Monitoring
-  # apply regardless of where the bundle lives on disk. The caveats
-  # below document the optional `ln -sfn` command for users who want
-  # the bundle to appear under /Applications.
-
-  # `brew services` integration removed in 0.0.18. skhd's own `--install-service`
-  # produces a launchd plist that's tuned for macOS Tahoe (retry loop, log path,
-  # bootstrap/bootout, ThrottleInterval=10, bundle-aware ProgramArguments) — the
-  # brew-services-generated plist is a strict subset and the two would race for
-  # the event tap if both were enabled. Caveats below cover the migration.
+  # `brew services` integration was removed in 0.0.18 — its generated plist
+  # is a strict subset of skhd's own and the two would race for the event
+  # tap. Setup goes through `skhd --start-service` (see caveats).
 
   def caveats
-    base = <<~EOS
+    <<~EOS
       Configuration:
         touch ~/.config/skhd/skhdrc
 
       Syntax reference:
         https://github.com/jackielii/skhd.zig/blob/main/SYNTAX.md
-    EOS
 
-    bundle_caveats = <<~EOS
+      Setup (idempotent — safe to re-run anytime):
+        skhd --start-service
+        # Registers the LaunchAgent and prompts for Accessibility + Input
+        # Monitoring on first launch. If your config has .remap / .taphold /
+        # fn_layer rules, also prompts (sudo) to install skhd-grabber and
+        # the Karabiner-DriverKit-VirtualHIDDevice .pkg.
 
-      App bundle:
-        #{opt_prefix}/skhd.app
-        (TCC bundle-keys grants by CFBundleIdentifier, not by path, so
-        Accessibility / Input Monitoring apply wherever the bundle lives.)
-
-      Optional — surface the bundle under /Applications (cosmetic; some
-      System Settings panes show the path):
-        ln -sfn #{opt_prefix}/skhd.app /Applications/skhd.app
-
-      First-run setup:
-        skhd --install-service
-        # macOS will pop up two consent dialogs the first time:
-        #   - Accessibility (always required)
-        #   - Input Monitoring (only if your config has .remap / .taphold rules)
-        # Both apply to skhd.app's bundle ID — one click per dialog, no
-        # need to navigate Privacy & Security manually.
         skhd --status   # verify
 
-      Tap-hold / remap rules (.remap, .taphold, fn_layer):
-        --install-service prompts (Y/n) to install skhd-grabber as a system
-        LaunchDaemon (asks for sudo password). The grabber runs from inside
-        skhd.app — same bundle ID — so Input Monitoring granted to the
-        agent covers the grabber too via bundle-shared TCC.
-
-        On a machine without Karabiner-Elements, --install-grabber also
-        installs the Karabiner-DriverKit-VirtualHIDDevice .pkg (one-time
-        ~3MB download) and writes a LaunchDaemon plist for its userland
-        daemon. If Karabiner-Elements is already installed, we detect that
-        and skip — they share the same daemon label and KE manages it via
-        SMAppService.
+      Optional — surface the bundle under /Applications:
+        ln -sfn #{opt_prefix}/skhd.app /Applications/skhd.app
 
       Logs:
         ~/Library/Logs/skhd.log    (agent)
-        /var/log/skhd-grabber.log  (grabber daemon, .remap users only)
+        /var/log/skhd-grabber.log  (grabber, if installed)
 
-      Uninstall (full cleanup):
-        skhd --uninstall-service           # remove LaunchAgent
-        sudo skhd --uninstall-grabber      # remove grabber + VHIDD daemon
-                                           # (Karabiner DriverKit pkg + the
-                                           # kernel dext are pqrs's domain;
-                                           # --uninstall-service prints
-                                           # the exact follow-up commands)
-        brew uninstall skhd-zig            # cleans /Applications symlink
+      Uninstall:
+        skhd --uninstall-service
+        sudo skhd --uninstall-grabber   # if installed
+        brew uninstall skhd-zig
 
-      Upgrading from 0.0.17 or earlier? See:
-        https://github.com/jackielii/skhd.zig/blob/main/docs/UPGRADING.md
-
-      Migrating from `brew services start skhd-zig`? The brew-services
-      integration was removed in 0.0.18. Run:
+      Migrating from `brew services start skhd-zig`:
         brew services stop skhd-zig 2>/dev/null
-        skhd --install-service
+        skhd --start-service
     EOS
-
-    legacy_caveats = <<~EOS
-
-      Note: skhd requires accessibility permissions.
-      You'll be prompted to grant these permissions on first run.
-    EOS
-
-    if (opt_prefix/"skhd.app").exist?
-      base + bundle_caveats
-    else
-      base + legacy_caveats
-    end
   end
 
   test do
