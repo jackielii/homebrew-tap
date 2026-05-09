@@ -48,6 +48,25 @@ class SkhdZig < Formula
   # is a strict subset of skhd's own and the two would race for the event
   # tap. Setup goes through `skhd --start-service` (see caveats).
 
+  # Auto-run `--start-service` after every install/upgrade. Closes the
+  # "service didn't restart after `brew upgrade`" gap: --start-service is
+  # idempotent and folds in the cleanupLegacyInstall step that boots out
+  # any pre-0.0.21 hand-installed plist at
+  # ~/Library/LaunchAgents/com.jackielii.skhd.plist (which silently
+  # shadows the SMAppService registration on Tahoe — same Label, two
+  # definitions = launchd refuses to spawn either with EX_CONFIG).
+  # Re-registering with BTM also re-binds SMAppService to the *current*
+  # versioned Cellar bundle path so the new binary actually gets used.
+  def post_install
+    # Best-effort: a failure here shouldn't abort the install (the
+    # binary is on disk and the user can recover by hand), but we want
+    # the output visible so they see what happened.
+    system bin/"skhd", "--start-service"
+  rescue => e
+    opoo "skhd --start-service failed during post_install: #{e.message}"
+    opoo "Run `skhd --start-service` manually to finish setup."
+  end
+
   def caveats
     <<~EOS
       Configuration:
@@ -56,13 +75,17 @@ class SkhdZig < Formula
       Syntax reference:
         https://github.com/jackielii/skhd.zig/blob/main/SYNTAX.md
 
-      Setup (idempotent — safe to re-run anytime):
-        skhd --start-service
-        # Registers the LaunchAgent and prompts for Accessibility + Input
-        # Monitoring on first launch. If your config has .remap / .taphold /
-        # fn_layer rules, also prompts (sudo) to install skhd-grabber and
-        # the Karabiner-DriverKit-VirtualHIDDevice .pkg.
+      Setup is now automatic: `skhd --start-service` runs in post_install
+      after every `brew install` / `brew upgrade`, registering the agent
+      with macOS Background Tasks Manager and cleaning up any pre-0.0.21
+      legacy plist that might shadow the SMAppService registration.
 
+      First-time install only — grant permissions when prompted:
+        - System Settings → Privacy & Security → Accessibility (toggle skhd on)
+        - Press any hotkey to trigger the Input Monitoring prompt; approve
+
+      To re-run setup manually (idempotent — safe anytime):
+        skhd --start-service
         skhd --status   # verify
 
       Optional — surface the bundle under /Applications:
