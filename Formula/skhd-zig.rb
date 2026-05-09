@@ -48,23 +48,31 @@ class SkhdZig < Formula
   # is a strict subset of skhd's own and the two would race for the event
   # tap. Setup goes through `skhd --start-service` (see caveats).
 
-  # Auto-run `--start-service` after every install/upgrade. Closes the
-  # "service didn't restart after `brew upgrade`" gap: --start-service is
-  # idempotent and folds in the cleanupLegacyInstall step that boots out
+  # Auto-run `--restart-service` after every install/upgrade. Closes the
+  # "service didn't restart after `brew upgrade`" gap. We use restart,
+  # not start, on purpose: brew replaces the on-disk binary but the
+  # running launchd process keeps the old binary's text mapped (Unix
+  # semantics — the inode lives on while a process holds it open), so a
+  # plain `--start-service` is a no-op against an already-running agent
+  # and the user is left running the previous version with no signal
+  # that anything is stale. `--restart-service` does
+  # `launchctl bootout` (no-op if nothing is running, so this is also
+  # safe on first install) → 1s pause → registerWithBTM, which spawns
+  # a fresh process from the new Cellar bundle.
+  #
+  # Restart also folds in the cleanupLegacyInstall step that boots out
   # any pre-0.0.21 hand-installed plist at
   # ~/Library/LaunchAgents/com.jackielii.skhd.plist (which silently
   # shadows the SMAppService registration on Tahoe — same Label, two
   # definitions = launchd refuses to spawn either with EX_CONFIG).
-  # Re-registering with BTM also re-binds SMAppService to the *current*
-  # versioned Cellar bundle path so the new binary actually gets used.
   def post_install
     # Best-effort: a failure here shouldn't abort the install (the
     # binary is on disk and the user can recover by hand), but we want
     # the output visible so they see what happened.
-    system bin/"skhd", "--start-service"
+    system bin/"skhd", "--restart-service"
   rescue => e
-    opoo "skhd --start-service failed during post_install: #{e.message}"
-    opoo "Run `skhd --start-service` manually to finish setup."
+    opoo "skhd --restart-service failed during post_install: #{e.message}"
+    opoo "Run `skhd --restart-service` manually to finish setup."
   end
 
   def caveats
