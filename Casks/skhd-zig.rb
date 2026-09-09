@@ -24,19 +24,19 @@ cask "skhd-zig" do
   # block it. Strip the quarantine so launchd can run it. TCC grants
   # (Accessibility / Input Monitoring) remain manual one-time grants keyed
   # to the self-signed cert — same as the previous formula install.
-  postflight do
+  postflight_steps do
     # Self-signed bundle + cask quarantine = Gatekeeper block. Strip so
     # launchd can run it. TCC grants stay manual one-time.
-    system_command "/usr/bin/xattr",
-                   args: ["-dr", "com.apple.quarantine", "#{appdir}/skhd.app"]
+    run "/usr/bin/xattr",
+        args: ["-dr", "com.apple.quarantine", "{{appdir}}/skhd.app"]
 
     # Restart the agent so install/upgrade picks up the new binary (ported
     # from the old formula's post_install). Best-effort — on a fresh
     # install before `skhd --start-service` has ever run there is no service
     # to restart; don't abort the install over it.
-    system_command "#{appdir}/skhd.app/Contents/MacOS/skhd",
-                   args:         ["--restart-service"],
-                   must_succeed: false
+    run "{{appdir}}/skhd.app/Contents/MacOS/skhd",
+        args:         ["--restart-service"],
+        must_succeed: false
   end
 
   # Stop the user LaunchAgent on uninstall. The root skhd-grabber
