@@ -30,13 +30,13 @@ cask "skhd-zig" do
     run "/usr/bin/xattr",
         args: ["-dr", "com.apple.quarantine", "{{appdir}}/skhd.app"]
 
-    # Restart the agent so install/upgrade picks up the new binary (ported
-    # from the old formula's post_install). Best-effort — on a fresh
-    # install before `skhd --start-service` has ever run there is no service
-    # to restart; don't abort the install over it.
-    run "{{appdir}}/skhd.app/Contents/MacOS/skhd",
-        args:         ["--restart-service"],
-        must_succeed: false
+    # The agent can't be restarted from here. macOS unloads an SMAppService
+    # agent when its app bundle is replaced, and Homebrew runs these steps in
+    # a sandbox that denies the mach-lookup to com.apple.xpc.smd that
+    # `SMAppService.register` needs (sandbox log: `deny(1) mach-lookup
+    # com.apple.xpc.smd`), so `skhd --restart-service` always failed here
+    # with "Socket is not connected". The caveats tell the user to run
+    # `skhd --start-service` after every install and upgrade instead.
   end
 
   # Stop the user LaunchAgent on uninstall. The root skhd-grabber
@@ -54,7 +54,8 @@ cask "skhd-zig" do
     Syntax reference:
       https://github.com/jackielii/skhd.zig/blob/main/SYNTAX.md
 
-    Setup (idempotent — safe to re-run anytime):
+    Setup (idempotent — safe to re-run anytime). Also run this after every
+    `brew upgrade`: macOS stops the agent when the app is replaced.
       skhd --start-service
       # Registers the LaunchAgent and prompts for Accessibility + Input
       # Monitoring on first launch. If your config has .remap / .taphold /
