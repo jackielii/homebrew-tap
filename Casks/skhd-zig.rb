@@ -2,9 +2,9 @@ cask "skhd-zig" do
   # `#{arch}` resolves to arm64 / x86_64 — matches the release tarball names.
   arch arm: "arm64", intel: "x86_64"
 
-  version "0.2.1"
-  sha256 arm:   "9a514c14798cee611abcc8d10645c21d745872edaa7dbfe5fd049a76e14c4d41",
-         intel: "8b933c71aec54d7792f8a521acf3c343a97a4b6315e431fc884378610db652b0"
+  version "0.2.2"
+  sha256 arm:   "7d30c5e0a40eafd7741e4df6d5078c772f04f19333c5e26078d3c6104878f356",
+         intel: "4fed908db783a24a73dbe8324e2211449e6fdd1d99a518ea20e0cec38d0e4538"
 
   url "https://github.com/jackielii/skhd.zig/releases/download/v#{version}/skhd-#{arch}-macos.tar.gz"
   name "skhd.zig"
